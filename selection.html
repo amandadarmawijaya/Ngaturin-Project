@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Choose your financial tool">
+    <title>Welcome - Ngaturin</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .selection-page {
+            min-height: 100vh;
+            background-image: url('assets/Backgound Green Grid (After Create Acc) Page).png');
+            background-size: cover;
+            background-position: center;
+            padding-top: 100px;
+        }
+
+        .selection-header {
+            text-align: center;
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-3xl);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-xl);
+        }
+
+        .selection-card {
+            background: var(--color-bg-alt);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border: 3px solid transparent;
+        }
+
+        .selection-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-primary);
+        }
+
+        .selection-card img {
+            max-width: 250px;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .logo-top {
+            position: absolute;
+            top: var(--spacing-xl);
+            left: var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--color-dark);
+            font-weight: 700;
+            font-size: var(--font-size-xl);
+        }
+
+        .logo-top img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: var(--spacing-xl);
+            right: var(--spacing-xl);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="selection-page">
+        <div class="logo-top">
+            <img src="assets/Logo Ngaturin.jpg" alt="Ngaturin Logo">
+            <span>Ngaturin</span>
+        </div>
+
+        <button class="btn btn-secondary logout-btn" onclick="logout()">Logout</button>
+
+        <div class="container">
+            <div class="selection-header fade-in">
+                <h1 style="color: var(--color-dark); margin-bottom: var(--spacing-md);">
+                    Welcome to Ngaturin!
+                </h1>
+                <p style="font-size: var(--font-size-xl); color: var(--color-text-light);">
+                    Choose how you'd like to manage your finances today
+                </p>
+            </div>
+
+            <div class="selection-grid">
+                <div class="selection-card slide-up" onclick="window.location.href='aicoach.html'">
+                    <img src="assets/AI Robot (Solution) Page.png" alt="AI Coach Robot">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">
+                        AI Coach
+                    </h3>
+                    <p style="color: var(--color-text-light); margin-bottom: var(--spacing-lg);">
+                        Your personal finance buddy here to answer all your money questions
+                    </p>
+                    <button class="btn btn-primary btn-large">Start Here</button>
+                </div>
+
+                <div class="selection-card slide-up" style="animation-delay: 0.2s;"
+                    onclick="window.location.href='goalsaver.html'">
+                    <img src="assets/Piggy Bank (Create Account and Goal Saver) Page.png" alt="Piggy Bank">
+                    <h3 style="color: var(--color-primary); margin-bottom: var(--spacing-md);">
+                        Goal Saver
+                    </h3>
+                    <p style="color: var(--color-text-light); margin-bottom: var(--spacing-lg);">
+                        Set financial goals and track your savings progress step by step
+                    </p>
+                    <button class="btn btn-primary btn-large">Start Saving</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Check if user is logged in
+        if (!isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+
+        function logout() {
+            clearUserSession();
+            showToast('Logged out successfully', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>
