@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to your Ngaturin account">
+    <title>Sign In - Ngaturin</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url('assets/Backgound Money Sign In Page.jpg');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .login-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3xl);
+        }
+
+        .login-card {
+            background-color: var(--color-card);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-2xl);
+            box-shadow: var(--shadow-xl);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-welcome {
+            text-align: right;
+            color: white;
+            max-width: 400px;
+        }
+
+        .logo-header {
+            position: absolute;
+            top: var(--spacing-xl);
+            right: var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: white;
+            font-weight: 700;
+            font-size: var(--font-size-xl);
+        }
+
+        .logo-header img {
+            width: 48px;
+            height: 48px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-page">
+        <div class="logo-header">
+            <img src="assets/Logo Ngaturin.jpg" alt="Ngaturin Logo">
+            <span>Ngaturin</span>
+        </div>
+
+        <div class="login-container">
+            <div class="login-card fade-in">
+                <h2 class="mb-sm" style="color: var(--color-dark); font-size: var(--font-size-3xl);">Hallo Peps!</h2>
+                <p class="mb-xl" style="color: var(--color-text-light);">
+                    Good to see you again!<br>
+                    Let's make your financial journey easier today.
+                </p>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" class="form-input" placeholder="Username"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-input" placeholder="Password"
+                            required>
+                    </div>
+
+                    <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="form-checkbox">
+                            <input type="checkbox" id="remember" name="remember">
+                            <label for="remember">Remember me</label>
+                        </div>
+                        <a href="#" style="color: var(--color-text-light); font-size: var(--font-size-sm);">
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full btn-large mt-md">
+                        Sign In
+                    </button>
+                    <div class="mt-md text-center">
+                        <button type="button" onclick="guestLogin()" class="btn btn-secondary w-full"
+                            style="border-style: dashed;">
+                            Guest Login (No Database Demo)
+                        </button>
+                    </div>
+                </form>
+
+                <p class="text-center mt-lg" style="color: var(--color-text-light); font-size: var(--font-size-sm);">
+                    Don't have an account?
+                    <a href="register.html" style="color: var(--color-primary); font-weight: 600;">Create Account</a>
+                </p>
+            </div>
+
+            <div class="login-welcome slide-in" style="display: none;">
+                <!-- Optional welcome message for larger screens -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Clear previous errors
+            clearError(document.getElementById('username'));
+            clearError(document.getElementById('password'));
+
+            // Basic validation
+            if (!username) {
+                showError(document.getElementById('username'), 'Username is required');
+                return;
+            }
+
+            if (!password) {
+                showError(document.getElementById('password'), 'Password is required');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Ngaturin2/api/login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password
+                    })
+                });
+
+
+                const result = await response.json();
+
+
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+
+
+                // Save session (same access as guest)
+                sessionStorage.setItem('ngaturin_user', JSON.stringify(result.user));
+
+
+                // Redirect
+                window.location.href = 'selection.html';
+
+
+            } catch (err) {
+                alert(err.message || 'Login failed');
+            }
+        });
+
+        function guestLogin() {
+            // Create a dummy guest session
+            const guestUser = {
+                id: 'guest',
+                username: 'Guest User',
+                email: 'guest@ngaturin.demo'
+            };
+
+            saveUserSession(guestUser);
+            showToast('Logged in as Guest! (Offline Mode)', 'success');
+
+            setTimeout(() => {
+                window.location.href = 'selection.html';
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>
