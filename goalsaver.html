@@ -118,6 +118,67 @@
             height: 48px;
             border-radius: 50%;
         }
+
+        /* ========== Comparison Chart Styles ========== */
+        .comparison-chart-card {
+            background: var(--color-bg-alt);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--color-border);
+        }
+
+        .histogram-row {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .histogram-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-xs);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+
+        .histogram-bar-outer {
+            height: 24px;
+            background: #FDF4E3;
+            /* Light yellow background */
+            border-radius: var(--radius-full);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #FFE082;
+        }
+
+        .histogram-target-bar {
+            position: absolute;
+            height: 100%;
+            background: #FFD54F;
+            /* Darker yellow for target capacity */
+            border-radius: var(--radius-full);
+            transition: width var(--transition-base);
+        }
+
+        .histogram-progress-bar {
+            position: absolute;
+            height: 100%;
+            background: var(--color-primary);
+            /* Green for actual money */
+            border-radius: var(--radius-full);
+            transition: width var(--transition-base);
+            z-index: 2;
+        }
+
+        .histogram-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
     </style>
 </head>
 
@@ -150,18 +211,73 @@
 
             <div class="goalsaver-content">
                 <div class="goalsaver-sidebar slide-up">
-                    <div class="sidebar-card">
-                        <h3 style="color: var(--color-dark); margin-bottom: var(--spacing-md);">
-                            Ready to achieve your goal?
+
+
+
+
+                    <!-- Gamification: Streak Pet -->
+                    <!-- Gamification: Streak Pet & Habits (Unified & Locked) -->
+                    <div class="sidebar-card streak-pet-container" id="streakPetContainer"
+                        style="background: linear-gradient(135deg, #FFF8E1 0%, #FFECB3 100%); border: 2px solid #FFD54F; position: relative;">
+                        <h3
+                            style="color: var(--color-dark); margin-bottom: var(--spacing-sm); font-size: var(--font-size-lg);">
+                            Your Savings Buddy
                         </h3>
-                        <button class="btn btn-primary btn-large" onclick="scrollToForm()">
-                            Start Saving
-                        </button>
+
+                        <!-- Content to be Blurred/Locked -->
+                        <div class="premium-content blurred" id="petContent">
+                            <div class="pet-stage"
+                                style="height: 120px; display: flex; align-items: center; justify-content: center; position: relative;">
+                                <div id="petAvatar"
+                                    style="font-size: 4rem; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                                    🥚
+                                </div>
+                                <!-- Status Bubble -->
+                                <div id="petStatusBubble" class="pet-bubble hidden">
+                                    I'm hungry! Save to feed me! 🪙
+                                </div>
+                            </div>
+
+                            <div class="pet-stats" style="margin-bottom: var(--spacing-md);">
+                                <div
+                                    style="display: flex; justify-content: space-between; font-size: var(--font-size-xs); color: var(--color-text); margin-bottom: 4px;">
+                                    <span>Health</span>
+                                    <span id="petHealthText">100%</span>
+                                </div>
+                                <div class="progress-bar" style="height: 10px; background: rgba(255,255,255,0.5);">
+                                    <div id="petHealthBar" class="progress-fill"
+                                        style="width: 100%; background: #4CAF50;"></div>
+                                </div>
+                                <p id="petMessage"
+                                    style="font-size: var(--font-size-xs); margin-top: var(--spacing-sm); font-style: italic; color: #795548; text-align: center;">
+                                    Log in daily to keep me healthy!
+                                </p>
+                            </div>
+
+                            <!-- Streak Count (Simplified) -->
+                            <div
+                                style="text-align: center; background: rgba(255,255,255,0.6); padding: var(--spacing-sm); border-radius: var(--radius-md);">
+                                <div style="font-size: 2rem; font-weight: 700; color: var(--color-primary);">7 Days
+                                </div>
+                                <div
+                                    style="font-size: var(--font-size-sm); color: var(--color-text-light); font-weight: 600;">
+                                    🔥 Current Streak</div>
+                            </div>
+                        </div>
+
+                        <!-- Lock Overlay for Entire Card -->
+                        <div class="premium-lock-overlay" id="petLock" style="background: rgba(255,255,255,0.7);">
+                            <div class="lock-icon-container">
+                                <span style="font-size: 24px;">🔒</span>
+                            </div>
+                            <h4>Unlock Your Buddy</h4>
+                            <p style="font-size: var(--font-size-sm); margin-bottom: var(--spacing-sm);">Get a Pet
+                                Companion & Track Streaks!</p>
+                            <button class="btn btn-primary btn-sm" onclick="showPremiumModal()">Upgrade</button>
+                        </div>
                     </div>
 
-                    <div class="sidebar-card">
-                        <img src="assets/Piggy Bank (Create Account and Goal Saver) Page.png" alt="Piggy Bank">
-                    </div>
+
                 </div>
 
                 <div class="goalsaver-main slide-up">
@@ -215,6 +331,50 @@
                                 Create Goal
                             </button>
                         </form>
+                    </div>
+
+                    <!-- Premium Feature: Goal Analytics (Combined) -->
+                    <div class="card premium-feature-container slide-up" id="analyticsCard"
+                        style="position: relative; overflow: hidden; margin-top: var(--spacing-xl);">
+                        <h3 style="color: var(--color-dark); margin-bottom: var(--spacing-sm);">
+                            Goal Analytics
+                        </h3>
+
+                        <div class="premium-content blurred">
+                            <!-- Success Rate Section -->
+                            <div style="text-align: center; margin-bottom: var(--spacing-lg);">
+                                <div class="success-rate-circle" style="margin: 0 auto;">
+                                    <svg viewBox="0 0 36 36" class="circular-chart primary" style="width: 100px;">
+                                        <path class="circle-bg"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="circle" stroke-dasharray="0, 100"
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <text x="18" y="20.35" class="percentage">0%</text>
+                                    </svg>
+                                </div>
+                                <p
+                                    style="font-size: var(--font-size-xs); margin-top: var(--spacing-xs); color: var(--color-text-light);">
+                                    Success Probability
+                                </p>
+                            </div>
+
+                            <!-- Comparison Histogram Section -->
+                            <div id="comparisonChartRows" style="margin-top: var(--spacing-md);">
+                                <!-- Histogram rows will be injected by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Lock Overlay -->
+                        <div class="premium-lock-overlay" id="analyticsLock">
+                            <div class="lock-icon-container">
+                                <span style="font-size: 24px;">🔒</span>
+                            </div>
+                            <h4>Premium Feature</h4>
+                            <p style="font-size: var(--font-size-sm); margin-bottom: var(--spacing-sm);">
+                                Unlock advanced progress analytics & comparisons.
+                            </p>
+                            <button class="btn btn-primary btn-sm" onclick="showPremiumModal()">Upgrade</button>
+                        </div>
                     </div>
 
                     <!-- Goals List -->

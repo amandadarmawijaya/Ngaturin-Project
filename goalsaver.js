@@ -3,6 +3,8 @@
 // ========================================
 
 let userGoals = [];
+// Mock Premium Status (Change to true to test unlocked state)
+let isPremium = false;
 
 // Calculate savings breakdown
 function calculateSavings() {
@@ -95,6 +97,8 @@ document.getElementById('createGoalForm').addEventListener('submit', async funct
     document.getElementById('createGoalForm').reset();
     document.getElementById('calculationDisplay').classList.remove('active');
     renderGoals();
+    updatePremiumStats(); // Update stats
+    feedPet(); // Feed the pet!
 });
 
 // Load goals
@@ -119,6 +123,7 @@ async function loadGoals() {
     userGoals = [...goals, ...localGoals];
 
     renderGoals();
+    checkPremiumFeatures(); // Check content locking
 }
 
 // Render goals list
@@ -131,6 +136,8 @@ function renderGoals() {
                 No goals yet. Create your first goal above!
             </p>
         `;
+        const chartCard = document.getElementById('analyticsCard');
+        if (chartCard) chartCard.style.display = 'none';
         return;
     }
 
@@ -162,6 +169,55 @@ function renderGoals() {
                     <button class="btn btn-secondary" onclick="deleteGoal(${goal.id})" style="font-size: var(--font-size-sm);">
                         Delete
                     </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    renderComparisonChart();
+    updatePremiumStats(); // Recalculate stats when goals render
+}
+
+// Render Comparison Histogram
+function renderComparisonChart() {
+    const container = document.getElementById('comparisonChartRows');
+    const analyticsCard = document.getElementById('analyticsCard');
+    if (!container || !analyticsCard) return;
+
+    // Show analytics card only if multiple goals exist
+    if (userGoals.length < 2) {
+        container.innerHTML = `<p style="font-size: var(--font-size-xs); color: var(--color-text-light); text-align: center; margin-top: var(--spacing-md);">Create more goals to compare progress!</p>`;
+        return;
+    }
+
+    analyticsCard.style.display = 'block';
+
+    // Find max target to scale the chart
+    const maxTarget = Math.max(...userGoals.map(g => g.target_amount));
+
+    container.innerHTML = userGoals.map(goal => {
+        const targetWidth = (goal.target_amount / maxTarget) * 100;
+        const progressInTarget = (goal.current_amount / goal.target_amount) * 100;
+
+        // Final pixel math for the progress bar relative to the max width
+        const progressWidth = (goal.current_amount / maxTarget) * 100;
+
+        return `
+            <div class="histogram-row">
+                <div class="histogram-label">
+                    <span>${goal.goal_name}</span>
+                    <span>Rp ${formatNumber(goal.current_amount)} / ${formatNumber(goal.target_amount)}</span>
+                </div>
+                <div class="histogram-bar-outer">
+                    <!-- Target Capacity (Yellow) -->
+                    <div class="histogram-target-bar" style="width: ${targetWidth}%"></div>
+                    <!-- Current Progress (Green) -->
+                    <div class="histogram-progress-bar" style="width: ${progressWidth}%"></div>
+                    
+                    <!-- Markers for clarity -->
+                    <div class="histogram-marker" style="left: 25%"></div>
+                    <div class="histogram-marker" style="left: 50%"></div>
+                    <div class="histogram-marker" style="left: 75%"></div>
                 </div>
             </div>
         `;
@@ -198,6 +254,7 @@ async function updateGoalProgress(goalId) {
             userGoals[goalIndex] = response.goal;
         }
         showToast('Progress updated!', 'success');
+        feedPet(); // Feed the pet!
 
     } catch (error) {
         console.warn('Backend unavailable, updating locally');
@@ -215,6 +272,7 @@ async function updateGoalProgress(goalId) {
             updateLocalGoalInStorage(goal);
 
             showToast('Progress updated locally!', 'success');
+            feedPet(); // Feed the pet!
         }
     }
     renderGoals();
@@ -254,3 +312,170 @@ function updateLocalGoalInStorage(updatedGoal) {
         localStorage.setItem('ngaturin_local_goals', JSON.stringify(localGoals));
     }
 }
+
+// ========== Premium Features Logic ========== 
+
+function checkPremiumFeatures() {
+    const blurredContent = document.querySelectorAll('.premium-content');
+    const lockOverlays = document.querySelectorAll('.premium-lock-overlay');
+    const analyticsCard = document.getElementById('analyticsCard');
+
+    if (isPremium) {
+        // Unlock
+        blurredContent.forEach(el => el.classList.remove('blurred'));
+        lockOverlays.forEach(el => el.style.display = 'none');
+        if (analyticsCard) analyticsCard.style.display = 'block';
+    } else {
+        // Lock
+        blurredContent.forEach(el => el.classList.add('blurred'));
+        lockOverlays.forEach(el => el.style.display = 'flex');
+        // We still want to see the "Upgrade" locked card if goals exist
+        if (analyticsCard) analyticsCard.style.display = userGoals.length > 0 ? 'block' : 'none';
+    }
+}
+
+function showPremiumModal() {
+    // Simulating a payment/upgrade flow
+    const confirmUpgrade = confirm("Upgrade to Premium to unlock Success Rates and Saving Streaks?\n\n(This is a demo: Click OK to simulate 'Paid' status)");
+
+    if (confirmUpgrade) {
+        isPremium = true;
+        checkPremiumFeatures();
+        showToast('Welcome to Premium! Features Unlocked 🔓', 'success');
+        updatePremiumStats();
+    }
+}
+
+function updatePremiumStats() {
+    if (!isPremium) return; // Don't calculate if locked (or do it in background)
+
+    // 1. Calculate Success Rate (Avg of all goals)
+    // Formula: (Total Current / Total Target) * 100 for now, or weighted.
+    // Let's use a simpler heuristic: Max(0, 100 - (Late Days * Payload)) ? 
+    // Let's make it: Sum(Progress) / Count(Goals)
+
+    let successRate = 0;
+    if (userGoals.length > 0) {
+        const totalProgress = userGoals.reduce((sum, goal) => {
+            return sum + ((goal.current_amount / goal.target_amount) * 100);
+        }, 0);
+        successRate = Math.min(100, Math.round(totalProgress / userGoals.length));
+    }
+
+    // Update Circle Diagram
+    const circle = document.querySelector('.circular-chart .circle');
+    const percentageText = document.querySelector('.circular-chart .percentage');
+
+    if (circle && percentageText) {
+        // svg dash array: coverage, 100
+        circle.setAttribute('stroke-dasharray', `${successRate}, 100`);
+        percentageText.textContent = `${successRate}%`;
+    }
+
+
+    // 2. Update Streaks (Mock Logic)
+    // In a real app, check transaction dates. Here, just random logic for demo or use stored streak.
+    const streakDays = userGoals.length > 0 ? 7 : 0; // Fake streak if user has goals
+    const streakText = document.querySelector('.streak-badge div div:first-child');
+    if (streakText) {
+        streakText.textContent = `${streakDays} Days`;
+    }
+}
+
+// ========== Streak Pet Logic ==========
+const petStates = {
+    EGG: '🥚',
+    BABY: '🐣',
+    CHILD: '🐥',
+    ADULT: '🐓', // Example evolution
+    SICK: '🤢'
+};
+
+let petData = {
+    exp: 0,
+    health: 100,
+    lastLogin: new Date().toISOString(),
+    stage: 'EGG'
+};
+
+function initPet() {
+    // Load pet data (Mocking default for now as we don't have persistent storage for this detail yet)
+    // In real app: JSON.parse(localStorage.getItem('streak_pet')) || default
+
+    // Check health based on time since last login (mock logic)
+    // If > 24 hours, decrease health
+
+    updatePetUI();
+}
+
+function updatePetUI() {
+    const avatarEl = document.getElementById('petAvatar');
+    const healthBar = document.getElementById('petHealthBar');
+    const healthText = document.getElementById('petHealthText');
+    const msgEl = document.getElementById('petMessage');
+    const bubbleEl = document.getElementById('petStatusBubble');
+
+    if (!avatarEl) return;
+
+    // Determine Stage based on EXP (Streak length/Savings count)
+    // Simple mock logic:
+    if (userGoals.length === 0) petData.stage = 'EGG';
+    else if (userGoals.length < 3) petData.stage = 'BABY';
+    else if (userGoals.length < 5) petData.stage = 'CHILD';
+    else petData.stage = 'ADULT';
+
+    // Override if sick
+    if (petData.health < 30) {
+        avatarEl.textContent = petStates.SICK;
+        avatarEl.className = 'pet-sick';
+        msgEl.textContent = "I don't feel so good... Save to heal me!";
+        msgEl.style.color = '#D32F2F';
+    } else {
+        avatarEl.textContent = petStates[petData.stage];
+        avatarEl.className = 'pet-alive'; // bubbles breathing animation
+
+        // Random idle messages
+        const msgs = [
+            "Keep saving!",
+            "You're doing great!",
+            "I love coins! 🪙",
+            "To the moon! 🚀"
+        ];
+        msgEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+        msgEl.style.color = '#795548';
+    }
+
+    // Update Health UI
+    healthBar.style.width = `${petData.health}%`;
+    healthBar.style.backgroundColor = petData.health > 50 ? '#4CAF50' : (petData.health > 20 ? '#FFC107' : '#F44336');
+    healthText.textContent = `${petData.health}%`;
+}
+
+function feedPet() {
+    // Called when user adds progress or creates a goal
+    petData.health = Math.min(100, petData.health + 10);
+    petData.exp += 10;
+
+    const avatarEl = document.getElementById('petAvatar');
+    const bubbleEl = document.getElementById('petStatusBubble');
+
+    // Animation
+    avatarEl.classList.add('pet-happy');
+    bubbleEl.textContent = "Yummy! Thanks! 😋";
+    bubbleEl.classList.remove('hidden');
+
+    setTimeout(() => {
+        avatarEl.classList.remove('pet-happy');
+        bubbleEl.classList.add('hidden');
+    }, 2000);
+
+    updatePetUI();
+}
+
+// Initialize Pet on Load
+document.addEventListener('DOMContentLoaded', initPet);
+
+// Hook into existing functions
+// We need to call feedPet() when goals are created or updated.
+// I'll add calls to feedPet() inside existing event listeners/functions.
+// (Note/Todo: Ideally I would refactor those functions to emit events, but direct call is fine for this scope)
