@@ -18,23 +18,17 @@
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
-    <div class="navbar__brand">
-        <img src="assets/Logo Ngaturin.jpg" alt="Ngaturin Logo" class="navbar__logo">
-        <span>Ngaturin</span>
-    </div>
-
-    <ul class="navbar__links">
-        <li><a href="#problem" class="navbar__link">Problem</a></li>
-        <li><a href="#solution" class="navbar__link">Solution</a></li>
-        <li><a href="#faq" class="navbar__link">FAQ</a></li>
-    </ul>
-
-    <!-- USER INFO (hidden by default) -->
-    <span id="userInfo" style="display:none; margin-right:12px; font-weight:600;"></span>
-
-    <!-- SIGN IN BUTTON -->
-    <a href="login.html" class="btn btn-primary" id="signInBtn">Sign In</a>
-</nav>
+        <div class="navbar__brand">
+            <img src="assets/Logo Ngaturin.jpg" alt="Ngaturin Logo" class="navbar__logo">
+            <span>Ngaturin</span>
+        </div>
+        <ul class="navbar__links">
+            <li><a href="#problem" class="navbar__link">Problem</a></li>
+            <li><a href="#solution" class="navbar__link">Solution</a></li>
+            <li><a href="#faq" class="navbar__link">FAQ</a></li>
+        </ul>
+        <a href="login.html" class="btn btn-primary">Sign In</a>
+    </nav>
 
     <!-- Hero Section -->
     <section id="hero" class="section section-hero" style="padding-left: 0; align-items: stretch;">
@@ -301,26 +295,6 @@
     </footer>
 
     <script src="script.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const user = sessionStorage.getItem('ngaturin_user')
-    ? JSON.parse(sessionStorage.getItem('ngaturin_user'))
-    : { role: 'guest' };
-
-
-    const signInBtn = document.getElementById('signInBtn');
-    const userInfo = document.getElementById('userInfo');
-
-
-    if (user.role === 'user') {
-    if (signInBtn) signInBtn.style.display = 'none';
-    if (userInfo) {
-    userInfo.textContent = `Hi, ${user.username}`;
-    userInfo.style.display = 'inline';
-    }
-    }
-});
-</script>
 </body>
 
 </html>

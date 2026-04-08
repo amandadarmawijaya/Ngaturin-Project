@@ -5,34 +5,6 @@
 let chatSessions = [];
 let currentSessionId = null;
 
-function getCurrentUser() {
-    const stored = sessionStorage.getItem('ngaturin_user');
-
-
-    if (stored) {
-        const user = JSON.parse(stored);
-        return {
-            ...user,
-            role: 'user'
-        };
-    }
-
-
-    return {
-        role: 'guest'
-    };
-}
-
-function getChatStorageKey() {
-    const user = getCurrentUser();
-
-    if (user.role === 'user' && user.id) {
-        return `ngaturin_chat_user_${user.id}`;
-    }
-
-    return 'ngaturin_chat_guest';
-}
-
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadChatSessions();
@@ -50,8 +22,7 @@ function startNewChat() {
         id: Date.now().toString(),
         title: 'New Chat',
         messages: [],
-        timestamp: new Date().toISOString(),
-        is_local: true
+        timestamp: new Date().toISOString()
     };
 
     chatSessions.unshift(newSession); // Add to top
@@ -114,12 +85,8 @@ function renderSidebar() {
         item.onclick = () => loadSession(session.id);
 
         // Hover effect helper
-        item.onmouseover = () => {
-            if (session.id !== currentSessionId) item.style.background = '#f8f9fa';
-        };
-        item.onmouseout = () => {
-            if (session.id !== currentSessionId) item.style.background = 'transparent';
-        };
+        item.onmouseover = () => { if (session.id !== currentSessionId) item.style.background = '#f8f9fa'; };
+        item.onmouseout = () => { if (session.id !== currentSessionId) item.style.background = 'transparent'; };
 
         list.appendChild(item);
     });
@@ -187,22 +154,14 @@ async function sendMessage() {
 
 // Send message to AI (Same Logic)
 async function sendToAI(message) {
-    const user = getCurrentUser();
-
-
-    // Guest → local fallback only
-    if (user.role === 'guest') {
-        return getFallbackResponse(message);
-    }
-
-
+    const user = getUserSession();
     try {
         const response = await apiRequest('/api/chat', 'POST', {
-            message,
-            user_id: user.id
+            message: message,
+            user_id: user?.id || 'guest'
         });
         return response.reply;
-    } catch {
+    } catch (error) {
         return getFallbackResponse(message);
     }
 }
@@ -252,22 +211,17 @@ function removeTypingIndicator() {
 
 // Storage handling
 function saveChatSessions() {
-    const key = getChatStorageKey();
-    localStorage.setItem(key, JSON.stringify(chatSessions));
+    localStorage.setItem('ngaturin_chat_sessions', JSON.stringify(chatSessions));
 }
 
 function loadChatSessions() {
-    const key = getChatStorageKey();
-    const stored = localStorage.getItem(key);
-
+    const stored = localStorage.getItem('ngaturin_chat_sessions');
     if (stored) {
         try {
             chatSessions = JSON.parse(stored);
         } catch (e) {
             chatSessions = [];
         }
-    } else {
-        chatSessions = [];
     }
 }
 

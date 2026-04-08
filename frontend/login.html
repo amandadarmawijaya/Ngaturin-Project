@@ -93,8 +93,8 @@
 
                 <form id="loginForm">
                     <div class="form-group">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" id="username" name="username" class="form-input" placeholder="Username"
+                        <label for="username" class="form-label">Email</label>
+                        <input type="text" id="username" name="username" class="form-input" placeholder="Email"
                             required>
                     </div>
 
@@ -138,78 +138,64 @@
     </div>
 
     <script src="script.js"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+    <script src="script.js"></script>
+<script>
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+// ==========================
+// LOGIN FORM SUBMIT
+// ==========================
 
-            // Clear previous errors
-            clearError(document.getElementById('username'));
-            clearError(document.getElementById('password'));
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
 
-            // Basic validation
-            if (!username) {
-                showError(document.getElementById('username'), 'Username is required');
-                return;
-            }
+    e.preventDefault();
 
-            if (!password) {
-                showError(document.getElementById('password'), 'Password is required');
-                return;
-            }
+    const email = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
-            try {
-                const response = await fetch('/Ngaturin2/api/login.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username,
-                        password
-                    })
-                });
+    try {
 
+        const formData = new URLSearchParams();
+        formData.append("username", email);
+        formData.append("password", password);
 
-                const result = await response.json();
-
-
-                if (!result.success) {
-                    throw new Error(result.error);
-                }
-
-
-                // Save session (same access as guest)
-                sessionStorage.setItem('ngaturin_user', JSON.stringify(result.user));
-
-
-                // Redirect
-                window.location.href = 'selection.html';
-
-
-            } catch (err) {
-                alert(err.message || 'Login failed');
-            }
+        const response = await fetch("http://127.0.0.1:8000/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: formData
         });
 
-        function guestLogin() {
-            // Create a dummy guest session
-            const guestUser = {
-                id: 'guest',
-                username: 'Guest User',
-                email: 'guest@ngaturin.demo'
-            };
+        const data = await response.json();
 
-            saveUserSession(guestUser);
-            showToast('Logged in as Guest! (Offline Mode)', 'success');
-
-            setTimeout(() => {
-                window.location.href = 'selection.html';
-            }, 1000);
+        if (!response.ok) {
+            throw new Error(data.detail || "Login failed");
         }
-    </script>
+
+        // SAVE TOKEN
+        localStorage.setItem("token", data.access_token);
+
+        alert("Login successful!");
+        window.location.href = "selection.html";
+
+    } catch (error) {
+        alert(error.message);
+    }
+
+});
+
+
+// ==========================
+// GUEST LOGIN
+// ==========================
+
+function guestLogin() {
+    localStorage.setItem("token", "guest-token");
+    alert("Logged in as Guest!");
+    window.location.href = "selection.html";
+}
+
+</script>
 </body>
 
 </html>

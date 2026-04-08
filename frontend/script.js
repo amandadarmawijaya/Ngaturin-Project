@@ -169,38 +169,45 @@ function getUserSession() {
 }
 
 function clearUserSession() {
-    sessionStorage.removeItem('ngaturin_user');
+    localStorage.removeItem("token");
 }
 
 function isLoggedIn() {
-    return getUserSession() !== null;
+    const token = localStorage.getItem("token");
+    return token && token !== "undefined" && token !== "null";
+}
+
+function getToken() {
+    return localStorage.getItem("token");
 }
 
 // ========== API Helper Functions ========== 
-        async function apiRequest(endpoint, method = 'GET', data = null) {
-        const options = {
-        method,
-        headers: { 'Content-Type': 'application/json' }
-        };
-
-
-        if (data) {
+async function apiRequest(endpoint, method = 'GET', data = null) {
+    const options = {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    };
+    
+    if (data) {
         options.body = JSON.stringify(data);
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:8000${endpoint}`, options);
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Request failed');
         }
-
-
-        // endpoint must ALREADY include .php
-        const response = await fetch(`/Ngaturin2${endpoint}`, options);
-        const text = await response.text();
-
-
-        try {
-        return JSON.parse(text);
-        } catch (e) {
-        console.error('Invalid JSON from server:', text);
-        throw new Error('Server did not return JSON');
-        }
-        }
+        
+        return result;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
 
 // Add fadeOut animation for toast
 const style = document.createElement('style');
